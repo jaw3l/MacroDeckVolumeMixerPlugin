@@ -10,7 +10,7 @@ namespace VolumeMixerPlugin.Actions;
 public class VolumeUpAction : PluginAction
 {
     public override string Name => "Volume Up";
-    public override string Description => "Increase app volume by 5%";
+    public override string Description => "Increase app volume by selected percentage";
     public override bool CanConfigure => true;
 
     internal string? _trackedAppName;
@@ -60,7 +60,7 @@ public class VolumeUpAction : PluginAction
 public class VolumeDownAction : PluginAction
 {
     public override string Name => "Volume Down";
-    public override string Description => "Decrease app volume by 5%";
+    public override string Description => "Decrease app volume by selected percentage";
     public override bool CanConfigure => true;
 
     internal string? _trackedAppName;
@@ -110,11 +110,13 @@ public class VolumeDownAction : PluginAction
 public class VolumeStepConfig
 {
     public string AppName { get; set; } = "";
+    public int Step { get; set; } = 5;
 }
 
 public class VolumeStepConfigControl : ActionConfigControl
 {
     private readonly MacroDeckRoundedComboBox _appComboBox;
+    private readonly NumericUpDown _stepNumericUpDown;
     private readonly PluginAction _action;
 
     public VolumeStepConfigControl(PluginAction action, ActionConfigurator actionConfigurator)
@@ -130,6 +132,11 @@ public class VolumeStepConfigControl : ActionConfigControl
         Controls.Add(label);
         Controls.Add(_appComboBox);
         Controls.Add(refreshButton);
+
+        var stepLabel = new Label { Text = "Step (%):", Location = new Point(14, 50), AutoSize = true };
+        _stepNumericUpDown = new NumericUpDown { Location = new Point(150, 46), Width = 80, Minimum = 1, Maximum = 100, Value = 5 };
+        Controls.Add(stepLabel);
+        Controls.Add(_stepNumericUpDown);
 
         PopulateApps();
         LoadConfig();
@@ -149,13 +156,21 @@ public class VolumeStepConfigControl : ActionConfigControl
         try
         {
             var config = JsonConvert.DeserializeObject<VolumeStepConfig>(_action.Configuration);
-            if (config != null && !string.IsNullOrEmpty(config.AppName))
+            if (config != null)
             {
-                if (!_appComboBox.Items.Contains(config.AppName))
+                if (config.Step > 0)
                 {
-                    _appComboBox.Items.Add(config.AppName);
+                    _stepNumericUpDown.Value = Math.Min(Math.Max(config.Step, 1), 100);
                 }
-                _appComboBox.SelectedItem = config.AppName;
+
+                if (!string.IsNullOrEmpty(config.AppName))
+                {
+                    if (!_appComboBox.Items.Contains(config.AppName))
+                    {
+                        _appComboBox.Items.Add(config.AppName);
+                    }
+                    _appComboBox.SelectedItem = config.AppName;
+                }
             }
         }
         catch
@@ -165,7 +180,7 @@ public class VolumeStepConfigControl : ActionConfigControl
 
     public override bool OnActionSave()
     {
-        var config = new VolumeStepConfig { AppName = _appComboBox.SelectedItem?.ToString() ?? "" };
+        var config = new VolumeStepConfig { AppName = _appComboBox.SelectedItem?.ToString() ?? "", Step = (int)_stepNumericUpDown.Value };
         _action.Configuration = JsonConvert.SerializeObject(config);
         _action.ConfigurationSummary = config.AppName;
 
