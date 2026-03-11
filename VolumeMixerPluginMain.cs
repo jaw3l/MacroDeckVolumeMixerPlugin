@@ -34,9 +34,13 @@ public class VolumeMixerPluginMain : MacroDeckPlugin
 
         Actions = new List<PluginAction>
         {
+            new SetFocusedAppVolumeAction(),
             new SetAppVolumeAction(),
+            new MuteFocusedAppAction(),
             new VolumeUpAction(),
             new VolumeDownAction(),
+            new VolumeUpFocusedAppAction(),
+            new VolumeDownFocusedAppAction(),
             new MuteAppAction(),
             new SetDefaultDeviceAction(),
             new SetDefaultMicrophoneAction(),
@@ -109,10 +113,23 @@ public class VolumeMixerPluginMain : MacroDeckPlugin
             }
 
             var trackedApps = GetTrackedAppsSnapshot();
-            if (trackedApps.Count == 0) return;
 
             var sessions = AudioService.SnapshotDefaultDeviceSessions();
             var sessionsByProcessName = sessions.ToDictionary(x => x.ProcessName, x => (x.Volume, x.Muted), StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                var focusedProcess = AudioService.GetFocusedProcessName();
+                if (!string.IsNullOrWhiteSpace(focusedProcess) && sessionsByProcessName.TryGetValue(focusedProcess, out var focusedInfo))
+                {
+                    VariableManager.SetValue("volumemixer_app_focused_volume", focusedInfo.Volume, VariableType.Integer, this, Array.Empty<string>());
+                    VariableManager.SetValue("volumemixer_app_focused_muted", focusedInfo.Muted, VariableType.Bool, this, Array.Empty<string>());
+                }
+            }
+            catch (Exception ex)
+            {
+                MacroDeckLogger.Warning(this, $"Error updating focused app variables: {ex.Message}");
+            }
 
             foreach (var appName in trackedApps)
             {

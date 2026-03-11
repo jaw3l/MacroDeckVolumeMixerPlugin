@@ -128,5 +128,4 @@ public class MuteAppConfigControl : ActionConfigControl
 
         return true;
     }
-
 }
