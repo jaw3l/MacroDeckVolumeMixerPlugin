@@ -12,6 +12,8 @@
     <Authors>DiegoFdezAb,jaw3l</Authors>
     <Description>Windows Volume Mixer plugin for Macro Deck - Control per-app volumes and audio devices</Description>
     <EnableDynamicLoading>true</EnableDynamicLoading>
+    <BaseOutputPath>..\artifacts\bin</BaseOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
