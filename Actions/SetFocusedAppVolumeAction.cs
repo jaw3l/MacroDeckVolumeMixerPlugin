@@ -39,16 +39,19 @@ public class SetFocusedAppVolumeAction : PluginAction
 
     public override ActionConfigControl GetActionConfigControl(ActionConfigurator actionConfigurator)
     {
-        return new SetFocusedAppVolumeConfigControl(actionConfigurator);
+        return new SetFocusedAppVolumeConfigControl(this, actionConfigurator);
     }
 }
 
 public class SetFocusedAppVolumeConfigControl : ActionConfigControl
 {
     private readonly NumericUpDown _volumeNumeric;
+    private readonly PluginAction _action;
 
-    public SetFocusedAppVolumeConfigControl(ActionConfigurator actionConfigurator)
+    public SetFocusedAppVolumeConfigControl(PluginAction action, ActionConfigurator actionConfigurator)
     {
+        _action = action;
+
         var label = new Label { Text = "Volume (0-100):", Location = new Point(14, 18), AutoSize = true };
         _volumeNumeric = new NumericUpDown
         {
@@ -61,6 +64,22 @@ public class SetFocusedAppVolumeConfigControl : ActionConfigControl
 
         Controls.Add(label);
         Controls.Add(_volumeNumeric);
+
+        LoadConfig();
+    }
+
+    private void LoadConfig()
+    {
+        if (string.IsNullOrEmpty(_action.Configuration)) return;
+        try
+        {
+            var config = JsonConvert.DeserializeObject<SetAppVolumeConfig>(_action.Configuration);
+            if (config != null)
+            {
+                _volumeNumeric.Value = (decimal)config.Volume;
+            }
+        }
+        catch { }
     }
 
     public override bool OnActionSave()
@@ -70,6 +89,8 @@ public class SetFocusedAppVolumeConfigControl : ActionConfigControl
             AppName = "",
             Volume = (float)_volumeNumeric.Value
         };
+        _action.Configuration = JsonConvert.SerializeObject(config);
+        _action.ConfigurationSummary = $"Volume: {config.Volume}%";
         return true;
     }
 }
