@@ -7,6 +7,28 @@ namespace VolumeMixerPlugin.Services;
 
 public sealed class AudioService : IDisposable
 {
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    public string? GetFocusedProcessName()
+    {
+        try
+        {
+            var hwnd = GetForegroundWindow();
+            if (hwnd == IntPtr.Zero) return null;
+            GetWindowThreadProcessId(hwnd, out var pid);
+            using var proc = Process.GetProcessById((int)pid);
+            return proc?.ProcessName;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private readonly MMDeviceEnumerator _deviceEnumerator = new();
     private readonly PolicyConfigClient _policyConfig = new();
     private readonly MacroDeckPlugin _owner;
