@@ -10,7 +10,7 @@ namespace VolumeMixerPlugin.Actions;
 public class VolumeUpAction : PluginAction
 {
     public override string Name => "Volume Up";
-    public override string Description => "Increase app volume by 5%";
+    public override string Description => "Increase app volume by selected percentage";
     public override bool CanConfigure => true;
 
     internal string? _trackedAppName;
@@ -60,7 +60,7 @@ public class VolumeUpAction : PluginAction
 public class VolumeDownAction : PluginAction
 {
     public override string Name => "Volume Down";
-    public override string Description => "Decrease app volume by 5%";
+    public override string Description => "Decrease app volume by selected percentage";
     public override bool CanConfigure => true;
 
     internal string? _trackedAppName;
