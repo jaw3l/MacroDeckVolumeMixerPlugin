@@ -21,6 +21,11 @@ public sealed class AudioService : IDisposable
             if (hwnd == IntPtr.Zero) return null;
             GetWindowThreadProcessId(hwnd, out var pid);
             using var proc = Process.GetProcessById((int)pid);
+            if (proc != null)
+            {
+                var fileDesc = proc.MainModule?.FileVersionInfo?.FileDescription ?? "Unknown";
+                MacroDeckLogger.Info(VolumeMixerPluginMain.Instance!, $"[AudioService] Focused window PID: {pid}, Process Name: {proc.ProcessName}, Process Description: {fileDesc}");
+            }
             return proc?.ProcessName;
         }
         catch
