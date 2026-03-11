@@ -24,6 +24,43 @@ public class SetAppVolumeAction : PluginAction
         VolumeMixerPluginMain.Instance?.UpdateVariables();
     }
 
+public class SetFocusedAppVolumeAction : PluginAction
+{
+    public override string Name => "Set Focused App Volume";
+    public override string Description => "Set volume for the currently focused application";
+    public override bool CanConfigure => true;
+
+    public override void Trigger(string clientId, ActionButton actionButton)
+    {
+        var config = GetConfig();
+        if (config == null) return;
+
+        var focused = VolumeMixerPluginMain.Instance?.AudioService?.GetFocusedProcessName();
+        if (string.IsNullOrEmpty(focused)) return;
+
+        VolumeMixerPluginMain.Instance?.AudioService?.SetAppVolume(focused, config.Volume);
+        VolumeMixerPluginMain.Instance?.UpdateVariables();
+    }
+
+    private SetAppVolumeConfig? GetConfig()
+    {
+        if (string.IsNullOrEmpty(Configuration)) return null;
+        try
+        {
+            return JsonConvert.DeserializeObject<SetAppVolumeConfig>(Configuration);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public override ActionConfigControl GetActionConfigControl(ActionConfigurator actionConfigurator)
+    {
+        return new SetAppVolumeConfigControl(new SetAppVolumeAction(), actionConfigurator);
+    }
+}
+
     public override void OnActionButtonLoaded()
     {
         var config = GetConfig();
