@@ -42,6 +42,10 @@ public class VolumeMixerPluginMain : MacroDeckPlugin
             new VolumeUpFocusedAppAction(),
             new VolumeDownFocusedAppAction(),
             new MuteAppAction(),
+            new SetMasterVolumeAction(),
+            new VolumeUpMasterAction(),
+            new VolumeDownMasterAction(),
+            new MuteMasterAction(),
             new SetDefaultDeviceAction(),
             new SetDefaultMicrophoneAction(),
             new SetDefaultDevicesPairAction(),
@@ -110,6 +114,18 @@ public class VolumeMixerPluginMain : MacroDeckPlugin
             if (commMicInfo.HasValue)
             {
                 VariableManager.SetValue("volumemixer_comm_mic", commMicInfo.Value.Name, VariableType.String, this, Array.Empty<string>());
+            }
+
+            try
+            {
+                var masterVolume = AudioService.GetMasterVolume();
+                var masterMuted = AudioService.GetMasterMuted();
+                VariableManager.SetValue("volumemixer_master_volume", masterVolume, VariableType.Integer, this, Array.Empty<string>());
+                VariableManager.SetValue("volumemixer_master_muted", masterMuted, VariableType.Bool, this, Array.Empty<string>());
+            }
+            catch (Exception ex)
+            {
+                MacroDeckLogger.Warning(this, $"Error updating master volume variables: {ex.Message}");
             }
 
             var trackedApps = GetTrackedAppsSnapshot();
