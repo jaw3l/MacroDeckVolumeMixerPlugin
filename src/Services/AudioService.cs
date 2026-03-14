@@ -375,6 +375,73 @@ public sealed class AudioService : IDisposable
     public void ToggleAppMute(string processName)
         => MutateSession(processName, s => s.SimpleAudioVolume.Mute = !s.SimpleAudioVolume.Mute);
 
+    // ───────────────────────────────────────────────────────────────
+    // Master Volume (System-wide)
+    // ───────────────────────────────────────────────────────────────
+
+    public int GetMasterVolume()
+    {
+        try
+        {
+            using var device = _deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            return (int)(device.AudioEndpointVolume.MasterVolumeLevelScalar * 100);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    public bool GetMasterMuted()
+    {
+        try
+        {
+            using var device = _deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            return device.AudioEndpointVolume.Mute;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public void SetMasterVolume(float volumePercent)
+    {
+        try
+        {
+            using var device = _deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            device.AudioEndpointVolume.MasterVolumeLevelScalar = Math.Clamp(volumePercent / 100f, 0f, 1f);
+        }
+        catch
+        {
+        }
+    }
+
+    public void AdjustMasterVolume(float deltaPercent)
+    {
+        try
+        {
+            using var device = _deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            var current = device.AudioEndpointVolume.MasterVolumeLevelScalar;
+            device.AudioEndpointVolume.MasterVolumeLevelScalar = Math.Clamp(current + (deltaPercent / 100f), 0f, 1f);
+        }
+        catch
+        {
+        }
+    }
+
+    public void ToggleMasterMute()
+    {
+        try
+        {
+            using var device = _deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            device.AudioEndpointVolume.Mute = !device.AudioEndpointVolume.Mute;
+        }
+        catch
+        {
+        }
+    }
+
     private void MutateSession(string processName, Action<AudioSessionControl> mutate)
     {
         try
